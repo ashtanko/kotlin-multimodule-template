@@ -1,5 +1,5 @@
 ---
-description: Run the full static-analysis suite (spotless, detekt, ktlint, diktat)
+description: Run the full static-analysis suite (spotless, detekt, ktlint, diktat) across every module
 allowed-tools: Bash(make check), Bash(./gradlew spotlessApply:*), Bash(./gradlew detekt ktlintCheck diktatCheck spotlessCheck:*)
 ---
 
@@ -12,7 +12,8 @@ Run the project's static-analysis suite with Gradle and report the result.
 - If you only want to auto-fix formatting and license headers without the full
   verification, run `./gradlew spotlessApply` instead.
 
-Note: this is the same suite the Stop hook runs automatically after code changes
+Note: every diktat and detekt rule is enabled, over main and test sources, in every module.
+This is the same suite the Stop hook runs automatically after code changes
 (`scripts/claude/lint-hook.sh`) and that CI enforces — use `/lint` for an on-demand
 check.
 

@@ -17,12 +17,14 @@ run for which kind of change.
 
 ## Notes
 
-- `make check` = `spotlessApply spotlessCheck detekt ktlintCheck diktatCheck`. It auto-formats
-  first, then verifies — running it twice in a row should be a no-op on the second run.
+- `make check` = `spotlessApply spotlessCheck detekt ktlintCheck diktatCheck --continue`. It
+  auto-formats first, then verifies every module, reporting all failing tools in one pass — running
+  it twice in a row should be a no-op on the second run. `make lint` is the same verification
+  without the auto-format (what CI runs); `make spotless`/`make detekt`/`make diktat` run one tool.
 - `test --tests` accepts a bare class name, `Class.method`, or a fully-qualified pattern; see
   [`CLAUDE.md`](../../CLAUDE.md) for exact examples. If Gradle reports the `test` task as
   `UP-TO-DATE` and a genuine re-run is needed, use `./gradlew cleanTest test`.
 - Never claim a check passed without having run it in this session.
 - Git hooks self-install via Gradle (`installGitHooks`, wired to `clean`) and run the same
-  `detekt ktlintCheck spotlessCheck spotlessApply` suite at commit time — `make check` locally
+  `spotlessApply`, then `detekt ktlintCheck diktatCheck spotlessCheck` suite at commit time — `make check` locally
   before committing avoids surprises there.

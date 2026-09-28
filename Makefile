@@ -1,7 +1,19 @@
-.PHONY: default check test report treport lines md all kover diktat bump-gradle
+.PHONY: default check lint format spotless detekt diktat test report treport lines md all kover bump-gradle
+
+# Static-analysis tasks. Each fans out to every module (template.kotlin-library convention plugin),
+# with every diktat and detekt rule enabled over main and test sources. --continue reports every
+# failing tool/module in one pass instead of stopping at the first.
+LINT_TASKS := spotlessCheck detekt ktlintCheck diktatCheck
 
 check:
-	./gradlew spotlessApply spotlessCheck detekt ktlintCheck diktatCheck --profile --daemon
+	./gradlew spotlessApply $(LINT_TASKS) --continue --profile --daemon
+
+# Verify-only twin of `check` (no auto-format) — what CI runs.
+lint:
+	./gradlew $(LINT_TASKS) --continue
+
+format:
+	./gradlew spotlessApply
 
 default:
 	make check && make md
@@ -27,11 +39,14 @@ lines:
 kover:
 	./gradlew koverHtmlReport
 
+spotless:
+	./gradlew spotlessCheck --continue
+
 diktat:
-	./gradlew diktatCheck
+	./gradlew diktatCheck --continue
 
 detekt:
-	./gradlew detekt
+	./gradlew detekt --continue
 
 bump-gradle:
 	chmod +x gradlew && ./gradlew wrapper --gradle-version 9.5

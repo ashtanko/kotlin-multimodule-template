@@ -28,22 +28,50 @@ import kotlin.math.sqrt
  */
 class Calculator {
     /**
-     * Sum [a] and [b].
-     * @param a
-     * @param b
-     * @return sum [a] + [b]
+     * Sums two integers.
+     *
+     * @param augend the number to add to
+     * @param addend the number to add
+     * @return the sum of [augend] and [addend]
      */
-    fun add(a: Int, b: Int) = a + b
+    fun add(augend: Int, addend: Int) = augend + addend
 
-    fun divide(a: Int, b: Int): Double = if (b == 0) {
-        throw DivideByZeroException(a)
+    /**
+     * Divides one integer by another, keeping the fractional part.
+     *
+     * @param dividend the number to divide
+     * @param divisor the number to divide by
+     * @return the exact quotient as a [Double]
+     * @throws DivideByZeroException if [divisor] is zero
+     */
+    fun divide(dividend: Int, divisor: Int): Double = if (divisor == 0) {
+        throw DivideByZeroException(dividend)
     } else {
-        a.toDouble() / b.toDouble()
+        dividend.toDouble() / divisor.toDouble()
     }
 
-    fun square(a: Int) = a * a
+    /**
+     * Multiplies an integer by itself.
+     *
+     * @param number the number to square
+     * @return [number] multiplied by itself
+     */
+    fun square(number: Int) = number * number
 
-    fun squareRoot(a: Int) = sqrt(a.toDouble())
+    /**
+     * Computes the non-negative square root of an integer.
+     *
+     * @param number the number to take the root of
+     * @return the square root of [number], or `NaN` if it is negative
+     */
+    fun squareRoot(number: Int) = sqrt(number.toDouble())
 
+    /**
+     * Computes a logarithm in an arbitrary base.
+     *
+     * @param base the logarithm base
+     * @param value the number whose logarithm is taken
+     * @return the logarithm of [value] in [base]
+     */
     fun log(base: Int, value: Int) = ln(value.toDouble()) / ln(base.toDouble())
 }

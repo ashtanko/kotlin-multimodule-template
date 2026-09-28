@@ -17,17 +17,16 @@
 package dev.shtanko.template.core
 
 import app.cash.turbine.test
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 
 class DataProcessorTest {
-
-    private lateinit var dataProcessor: DataProcessor
     private val testDispatcher = StandardTestDispatcher()
+    private lateinit var dataProcessor: DataProcessor
 
     @BeforeEach
     fun setUp() {

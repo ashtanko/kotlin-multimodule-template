@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
 
 class ApplicationTest {
-
     @Test
     fun `main entry point executes without throwing exceptions`() {
         assertDoesNotThrow {

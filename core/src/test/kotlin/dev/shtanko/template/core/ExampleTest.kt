@@ -29,7 +29,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
 class ExampleTest {
-
     private val calculator = Calculator()
 
     @Test
@@ -40,6 +39,7 @@ class ExampleTest {
     @Test
     fun `The square of a number should be equal to that number multiplied in itself`() {
         assertAll(
+            "squares of 1..3",
             { assertEquals(1, calculator.square(1)) },
             { assertEquals(4, calculator.square(2)) },
             { assertEquals(9, calculator.square(3)) },
@@ -49,6 +49,7 @@ class ExampleTest {
     @Test
     fun `Divide test`() {
         assertAll(
+            "exact and fractional quotients",
             { assertEquals(2.0, calculator.divide(4, 2)) },
             { assertEquals(1.0, calculator.divide(1, 1)) },
             { assertEquals(1.5, calculator.divide(3, 2)) },
@@ -65,12 +66,12 @@ class ExampleTest {
 
     @Test
     fun `isEmpty should return true for empty lists`() {
-        val list = listOf<String>()
+        val list: List<String> = emptyList()
         assertTrue(list::isEmpty)
     }
 
     @TestFactory
-    fun `Squares test`() = listOf(
+    fun squaresOfOneToThree() = listOf(
         DynamicTest.dynamicTest("when I calculate 1^2 then I get 1") {
             assertEquals(1, calculator.square(1))
         },
@@ -83,7 +84,7 @@ class ExampleTest {
     )
 
     @TestFactory
-    fun `Squares map test`() = listOf(
+    fun squaresFromInputExpectedPairs() = listOf(
         1 to 1,
         2 to 4,
         3 to 9,
@@ -101,7 +102,7 @@ class ExampleTest {
         "2, 4",
         "3, 9",
     )
-    fun `Squares test`(input: Int, expected: Int) {
+    fun squaresFromCsvRows(input: Int, expected: Int) {
         assertEquals(expected, input * input)
     }
 
