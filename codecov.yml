@@ -1,14 +1,14 @@
 codecov:
   branch: main
-  disable_default_path_fixes: true
   notify:
     require_ci_to_pass: yes
 
+# No `fixes`/`disable_default_path_fixes`: CI uploads per-module Kover XML whose paths are
+# package-relative (dev/shtanko/template/core/Calculator.kt), and Codecov's default path fixing
+# maps them onto <module>/src/main/kotlin/... — including after scripts/rename-project.sh.
 coverage:
   status:
     project:
       default:
         target: 80%
         threshold: 5%
-fixes:
-  - "main/::"

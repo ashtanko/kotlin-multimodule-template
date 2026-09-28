@@ -83,10 +83,13 @@ Run with `--help` for all available options, or `--dry-run` to preview changes.
 
 | Command            | Description                                                             |
 |--------------------|-------------------------------------------------------------------------|
-| `make check`       | Run all static analysis (`spotless`, `detekt`, `ktlint`, `diktat`)      |
+| `make check`       | Auto-format, then run all static analysis in every module               |
+| `make lint`        | Run all static analysis without auto-formatting (what CI runs)          |
+| `make format`      | Auto-format code and apply license headers (`spotlessApply`)            |
 | `make test`        | Run the test suite                                                      |
 | `make report`      | Generate Jacoco coverage report                                         |
 | `make kover`       | Generate Kover HTML coverage report                                     |
+| `make spotless`    | Run Spotless check only                                                 |
 | `make detekt`      | Run Detekt analysis only                                                |
 | `make diktat`      | Run Diktat check only                                                   |
 | `make md`          | Regenerate `README.md` from `config/main.md` + detekt report + license  |
@@ -104,6 +107,7 @@ Run with `--help` for all available options, or `--dry-run` to preview changes.
 | `./gradlew detekt`             | Run Detekt static analysis                     |
 | `./gradlew ktlintCheck`        | Check code style with ktlint                   |
 | `./gradlew diktatCheck`        | Check code style with Diktat                   |
+| `./gradlew spotlessCheck`      | Check formatting and license headers           |
 | `./gradlew spotlessApply`      | Auto-format code and apply license headers     |
 | `./gradlew jacocoTestReport`   | Generate Jacoco coverage report                |
 | `./gradlew koverHtmlReport`    | Generate Kover HTML coverage report            |
@@ -208,12 +212,12 @@ kotlin-app-template/
 
 ## CI/CD
 
-The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs on every push to `main` and on pull requests:
+The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs on every push to `main`, on pull requests, and on demand. Two jobs run in parallel:
 
-1. **Build & Test** — compiles and runs tests on JDK 17 and JDK 21.
-2. **Static Analysis** — runs `detekt`, `ktlint`, and `diktat`.
-3. **Coverage Reporting** — generates Jacoco and Kover reports, uploads to Codecov and Codacy.
-4. **Code Quality** — runs Codacy Analysis CLI.
+1. **Static analysis** — `make lint` (`spotless`, `detekt`, `ktlint`, `diktat`) once; detekt and diktat findings are uploaded to GitHub code scanning, so they show up as annotations on the PR.
+2. **Test (JDK 17 and 21)** — builds, runs the tests *on each JDK* (`-PtestJdk`), and enforces the Kover/Jacoco coverage gates.
+
+Codecov and Codacy are optional: add the `CODECOV_TOKEN` / `CODACY_PROJECT_TOKEN` repository secrets to enable per-module Kover coverage uploads and the Codacy Analysis CLI; without them those steps are skipped instead of failing. Reports are attached to failed runs as artifacts, and dependency and action updates come from Renovate (`renovate.json`), with actions pinned to commit SHAs.
 
 ## Contributing 🤝
 

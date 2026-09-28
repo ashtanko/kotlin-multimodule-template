@@ -7,21 +7,89 @@ on:
     paths-ignore:
       - '**.md'
   pull_request:
-    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Superseded PR runs are cancelled; every commit on main keeps its run (and coverage upload).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-  actions: write
   contents: read
-  id-token: write
 
+# Actions are pinned to commit SHAs (Renovate keeps them and the version comments current).
+# Codecov and Codacy are optional: their steps run only when the repository has the token secret, so
+# Dependabot/fork PRs and fresh repos created from this template don't fail on missing secrets.
 jobs:
-  build:
-    name: Build (JDK ${{ matrix.java-version }})
+  lint:
+    name: Static analysis
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write # upload detekt/diktat SARIF to GitHub code scanning
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # Also validates the checksum of gradle/wrapper/gradle-wrapper.jar (validate-wrappers defaults to true).
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Run static analysis (spotless, detekt, ktlint, diktat)
+        run: make lint
+
+      # Annotates findings on the PR; runs even when the lint step failed. Fork PRs get a read-only
+      # token, so they skip it.
+      - name: Upload detekt SARIF
+        if: always() && !github.event.pull_request.head.repo.fork && hashFiles('build/reports/detekt/merge.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          sarif_file: build/reports/detekt/merge.sarif
+          category: detekt
+
+      - name: Upload diktat SARIF
+        if: always() && !github.event.pull_request.head.repo.fork && hashFiles('build/reports/diktat/diktat-merged.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          sarif_file: build/reports/diktat/diktat-merged.sarif
+          category: diktat
+
+      - name: Check for Codacy token
+        id: tokens
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        run: echo "codacy=${CODACY_PROJECT_TOKEN:+true}" >> "$GITHUB_OUTPUT"
+
+      - name: Run Codacy Analysis CLI
+        if: steps.tokens.outputs.codacy == 'true'
+        uses: codacy/codacy-analysis-cli-action@562ee3e92b8e92df8b67e0a5ff8aa8e261919c08 # v4.4.7
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          upload: true
+          max-allowed-issues: 100
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lint-reports
+          path: '**/build/reports/'
+          retention-days: 7
+
+  test:
+    name: Test (JDK ${{ matrix.java-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       matrix:
         java-version: ['17', '21']
@@ -29,53 +97,62 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for better analysis relevancy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up JDK ${{ matrix.java-version }}
-        uses: actions/setup-java@v5
+      # The last version listed becomes JAVA_HOME: Gradle and compilation use 17 (the toolchain);
+      # the matrix JDK is only for running the tests (see -PtestJdk below).
+      - name: Set up JDK ${{ matrix.java-version }} (tests) and 17 (Gradle)
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: ${{ matrix.java-version }}
           distribution: 'zulu'
-          cache: 'gradle'
+          java-version: |
+            ${{ matrix.java-version }}
+            17
 
-      - name: Validate Gradle Wrapper
-        run: ./gradlew --version
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      # `build` minus the static analysis the lint job already ran. -PtestJdk runs the tests on the
+      # matrix JDK (the toolchain alone would pin them to 17); fromEnv points Gradle at setup-java's install.
+      - name: Build, test and verify coverage
+        run: >-
+          ./gradlew assemble test koverVerify :jacocoTestCoverageVerification koverXmlReport
+          -PtestJdk=${{ matrix.java-version }}
+          -Porg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.java-version }}_X64
 
-      - name: Run static analysis checks
-        run: ./gradlew detekt ktlintCheck diktatCheck spotlessCheck --build-cache --no-daemon --stacktrace
-
-      - name: Build with Gradle and test
-        run: ./gradlew build --build-cache --no-daemon --stacktrace
-
-
-      - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@master
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          upload: true
-          max-allowed-issues: 100
-
-      - name: Generate Kover Test Coverage Xml Report
-        run: ./gradlew koverXmlReport
-
-      - name: Generate Jacoco Test Coverage Xml Report
-        run: ./gradlew jacocoTestReport
+      - name: Check for coverage tokens
+        id: tokens
+        if: matrix.java-version == '17'
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        run: |
+          {
+            echo "codecov=${CODECOV_TOKEN:+true}"
+            echo "codacy=${CODACY_PROJECT_TOKEN:+true}"
+            # Per-module Kover XML (Kover can't aggregate across modules yet; see build.gradle.kts).
+            echo "reports=$(find . -path '*/build/reports/kover/report.xml' | sort | paste -sd, -)"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7.0.0
+        if: steps.tokens.outputs.codecov == 'true'
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./build/reports/jacoco/
-          files: ./build/reports/jacoco/test/jacocoTestReport.xml
-          verbose: true
+          files: ${{ steps.tokens.outputs.reports }}
+          disable_search: true
 
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1
+      - name: Upload coverage to Codacy
+        if: steps.tokens.outputs.codacy == 'true'
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: ./build/reports/jacoco/test/jacocoTestReport.xml
+          coverage-reports: ${{ steps.tokens.outputs.reports }}
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-reports-jdk${{ matrix.java-version }}
+          path: '**/build/reports/'
+          retention-days: 7

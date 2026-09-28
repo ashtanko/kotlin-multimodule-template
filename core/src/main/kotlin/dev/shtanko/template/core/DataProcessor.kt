@@ -41,7 +41,6 @@ class DataProcessor(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     /**
-
      * Fetches a list of IDs.
      *
      * @return List of IDs.
@@ -84,8 +83,8 @@ class DataProcessor(
             // For this example, we'll retry on any exception just to demonstrate the operator.
             cause is Exception
         }
-        .catch { e ->
-            emit(Result.failure(e))
+        .catch { cause ->
+            emit(Result.failure(cause))
         }
         .flowOn(ioDispatcher)  // Execute upstream operations on the provided dispatcher
 }

@@ -55,10 +55,22 @@ only so you recognize them, not so you memorize them:
   80/120/180.)
 - **No wildcard imports** (e.g. `import java.util.*`) — they pollute the namespace and break when
   the wildcard package gains a colliding class.
-- **Expression bodies** for single-expression functions (`fun add(a: Int, b: Int) = a + b`).
+- **Expression bodies** for single-expression functions (`fun add(augend: Int, addend: Int) = augend + addend`).
 - **Trailing commas** in multi-line parameter/argument lists (cleaner diffs).
 - **License header**: every `.kt` file must start with the Apache header from
-  `spotless/copyright.kt` (`spotlessApply` adds it).
+  `spotless/copyright.kt` (`spotlessApply` adds it; diktat and detekt verify it too).
+- **Every diktat and detekt rule is on**, in `src/main` and `src/test`. The ones new code trips
+  most often:
+  - KDoc on every public/internal class and function, with `@param`/`@return`/`@throws` tags.
+  - Identifiers of at least 2 characters, including lambda parameters (`cause ->`, not `e ->`).
+  - No `print`/`println`: use a logger, or add a narrow `@Suppress("DEBUG_PRINT", "ForbiddenMethodCall")`
+    where stdout *is* the output (see `main` in `Application.kt`).
+  - A file-level KDoc between the license header and `package` in files that don't contain
+    exactly one class.
+  - `lateinit` properties after the regular ones.
+
+  If a rule really doesn't fit, suppress it narrowly with a reason; don't switch it off in the
+  config.
 - **Detekt baseline**: pre-existing issues are parked in `config/detekt/detekt-baseline.xml`; don't
   add to it for new code.
 
@@ -72,7 +84,8 @@ only so you recognize them, not so you memorize them:
 - Backing properties: leading underscore (`private val _items`).
 - Test functions: backticked, descriptive sentences are encouraged here
   (`` fun `divide by zero throws`() ``). This is a JVM backend, so the Android restriction on
-  spaces-in-backticks does not apply.
+  spaces-in-backticks does not apply. Backticks are for `@Test` functions only; diktat rejects them
+  on `@ParameterizedTest`/`@TestFactory` functions, which take lowerCamelCase names instead.
 
 ## Conventions that need judgment
 

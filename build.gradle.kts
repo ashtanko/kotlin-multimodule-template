@@ -27,28 +27,34 @@ jacoco {
     toolVersion = "0.8.15"
 }
 
+// Module sources and build scripts are formatted per module by the `template.kotlin-library`
+// convention plugin (`./gradlew spotlessCheck` fans out to every module); this block only covers
+// what lives outside a module.
 spotless {
-    kotlin {
-        target(
-            fileTree(
-                mapOf(
-                    "dir" to ".",
-                    "include" to listOf("**/*.kt"),
-                    "exclude" to listOf("**/build/**", "**/spotless/*.kt"),
-                ),
-            ),
-        )
+    kotlinGradle {
+        target("*.gradle.kts", "buildSrc/*.gradle.kts", "buildSrc/src/**/*.gradle.kts")
         trimTrailingWhitespace()
         leadingTabsToSpaces()
         endWithNewline()
-        val delimiter = "^(package|object|import|interface|internal|@file|//startfile)"
-        val licenseHeaderFile = rootProject.file("spotless/copyright.kt")
-        licenseHeaderFile(licenseHeaderFile, delimiter)
     }
-}
-
-subprojects {
-    apply<com.diffplug.gradle.spotless.SpotlessPlugin>()
+    format("misc") {
+        target(
+            fileTree(".") {
+                include(
+                    "**/*.yml",
+                    "**/*.yaml",
+                    "**/*.toml",
+                    "**/*.properties",
+                    "**/*.sh",
+                    "**/.gitignore",
+                    "**/.editorconfig",
+                )
+                exclude("**/build/**", "**/.gradle/**", "**/.kotlin/**", ".idea/**")
+            },
+        )
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 // region Coverage aggregation across app + core
@@ -63,8 +69,9 @@ subprojects {
 // Jacoco has no built-in aggregation either, so the merge is hand-rolled: gather each module's
 // exec data + class/source dirs into one root-level report and verification task. The output
 // path intentionally matches the jacoco plugin's own per-module default
-// (build/reports/jacoco/test/jacocoTestReport.xml) so CI, Codecov and coveralls-jacoco don't
-// need to know this is now an aggregate.
+// (build/reports/jacoco/test/jacocoTestReport.xml) so coveralls-jacoco doesn't need to know this
+// is now an aggregate. CI uploads each module's Kover XML to Codecov/Codacy instead: this Jacoco
+// aggregate also lists library code inlined into the modules (e.g. kotlinx.coroutines' Emitters.kt).
 val coverageModules = listOf(project(":app"), project(":core"))
 
 // (The jacoco plugin only auto-registers jacocoTestReport/jacocoTestCoverageVerification when
@@ -145,6 +152,14 @@ tasks.register("detektMergeMd") {
             )
         }
     }
+}
+
+// Every module's `detekt` task feeds its SARIF report in here and is finalized by this task (see the
+// convention plugin); CI uploads the result to GitHub code scanning.
+tasks.register<io.gitlab.arturbosch.detekt.report.ReportMergeTask>("detektReportMerge") {
+    group = "reporting"
+    description = "Merges per-module Detekt SARIF reports for GitHub code scanning."
+    output.set(layout.buildDirectory.file("reports/detekt/merge.sarif"))
 }
 // endregion
 

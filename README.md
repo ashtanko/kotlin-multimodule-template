@@ -83,10 +83,13 @@ Run with `--help` for all available options, or `--dry-run` to preview changes.
 
 | Command            | Description                                                             |
 |--------------------|-------------------------------------------------------------------------|
-| `make check`       | Run all static analysis (`spotless`, `detekt`, `ktlint`, `diktat`)      |
+| `make check`       | Auto-format, then run all static analysis in every module               |
+| `make lint`        | Run all static analysis without auto-formatting (what CI runs)          |
+| `make format`      | Auto-format code and apply license headers (`spotlessApply`)            |
 | `make test`        | Run the test suite                                                      |
 | `make report`      | Generate Jacoco coverage report                                         |
 | `make kover`       | Generate Kover HTML coverage report                                     |
+| `make spotless`    | Run Spotless check only                                                 |
 | `make detekt`      | Run Detekt analysis only                                                |
 | `make diktat`      | Run Diktat check only                                                   |
 | `make md`          | Regenerate `README.md` from `config/main.md` + detekt report + license  |
@@ -104,6 +107,7 @@ Run with `--help` for all available options, or `--dry-run` to preview changes.
 | `./gradlew detekt`             | Run Detekt static analysis                     |
 | `./gradlew ktlintCheck`        | Check code style with ktlint                   |
 | `./gradlew diktatCheck`        | Check code style with Diktat                   |
+| `./gradlew spotlessCheck`      | Check formatting and license headers           |
 | `./gradlew spotlessApply`      | Auto-format code and apply license headers     |
 | `./gradlew jacocoTestReport`   | Generate Jacoco coverage report                |
 | `./gradlew koverHtmlReport`    | Generate Kover HTML coverage report            |
@@ -199,17 +203,21 @@ kotlin-app-template/
 ├── renovate.json                    # Renovate bot configuration for dependency updates
 ├── diktat-analysis.yml              # Diktat analysis configuration
 ├── checksum.sh                      # Checksum verification script
-└── AGENTS.md                        # AI agent guidelines
+├── AGENTS.md                        # Canonical AI agent entry point
+└── .agents/                         # Agent context map, reference docs, and Kotlin skills
+    ├── README.md                    # Context map (what to load for which task)
+    ├── reference/                   # coding-conventions.md, testing.md, commands.md
+    └── skills/                      # Portable SKILL.md procedures (coroutines, Flow, control flow, …)
 ```
 
 ## CI/CD
 
-The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs on every push to `main` and on pull requests:
+The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs on every push to `main`, on pull requests, and on demand. Two jobs run in parallel:
 
-1. **Build & Test** — compiles and runs tests on JDK 17 and JDK 21.
-2. **Static Analysis** — runs `detekt`, `ktlint`, and `diktat`.
-3. **Coverage Reporting** — generates Jacoco and Kover reports, uploads to Codecov and Codacy.
-4. **Code Quality** — runs Codacy Analysis CLI.
+1. **Static analysis** — `make lint` (`spotless`, `detekt`, `ktlint`, `diktat`) once; detekt and diktat findings are uploaded to GitHub code scanning, so they show up as annotations on the PR.
+2. **Test (JDK 17 and 21)** — builds, runs the tests *on each JDK* (`-PtestJdk`), and enforces the Kover/Jacoco coverage gates.
+
+Codecov and Codacy are optional: add the `CODECOV_TOKEN` / `CODACY_PROJECT_TOKEN` repository secrets to enable per-module Kover coverage uploads and the Codacy Analysis CLI; without them those steps are skipped instead of failing. Reports are attached to failed runs as artifacts, and dependency and action updates come from Renovate (`renovate.json`), with actions pinned to commit SHAs.
 
 ## Contributing 🤝
 
@@ -241,13 +249,13 @@ Types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`.
 
 ## Complexity Report
 
-* 62 lines of code (loc)
+* 68 lines of code (loc)
 
-* 17 source lines of code (sloc)
+* 18 source lines of code (sloc)
 
-* 8 logical lines of code (lloc)
+* 9 logical lines of code (lloc)
 
-* 36 comment lines of code (cloc)
+* 38 comment lines of code (cloc)
 
 * 2 cyclomatic complexity (mcc)
 
@@ -257,13 +265,13 @@ Types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`.
 
 * 211% comment source ratio
 
-* 250 mcc per 1,000 lloc
+* 222 mcc per 1,000 lloc
 
 * 0 code smells per 1,000 lloc
 
 ## Findings (0)
 
-generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-08-18 14:59:26 UTC
+generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-09-28 11:33:37 UTC
 
 
 ## Module: core
@@ -284,13 +292,13 @@ generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-08-18 14:59:
 
 ## Complexity Report
 
-* 366 lines of code (loc)
+* 393 lines of code (loc)
 
-* 184 source lines of code (sloc)
+* 186 source lines of code (sloc)
 
-* 117 logical lines of code (lloc)
+* 119 logical lines of code (lloc)
 
-* 138 comment lines of code (cloc)
+* 165 comment lines of code (cloc)
 
 * 23 cyclomatic complexity (mcc)
 
@@ -298,15 +306,15 @@ generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-08-18 14:59:
 
 * 0 number of total code smells
 
-* 75% comment source ratio
+* 88% comment source ratio
 
-* 196 mcc per 1,000 lloc
+* 193 mcc per 1,000 lloc
 
 * 0 code smells per 1,000 lloc
 
 ## Findings (0)
 
-generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-08-18 14:59:42 UTC
+generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-09-28 11:33:37 UTC
 
 # License
 

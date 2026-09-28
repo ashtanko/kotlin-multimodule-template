@@ -18,7 +18,12 @@ Gradle modules; each module's tests live in its own `src/test/kotlin` and run on
   current examples use neither AssertJ nor mocks. Don't mock data classes or simple values —
   construct them directly.
 - **Structure**: Arrange-Act-Assert in every test.
-- **Naming**: descriptive backticked names (`` fun `divide by zero throws`() ``).
+- **Naming**: descriptive backticked names (`` fun `divide by zero throws`() ``) on `@Test`
+  functions. diktat's `BACKTICKS_PROHIBITED` allows backticks on `@Test` only, so
+  `@ParameterizedTest`/`@TestFactory` functions take descriptive lowerCamelCase names
+  (`squaresFromCsvRows`).
+- **Imports**: diktat's order is others (`app.cash`, `org.junit`, …), then `java`/`javax`, then
+  `kotlin`/`kotlinx` last, with no blank lines between groups.
 - **Isolation**: tests must not depend on each other or external state.
 - **Parameterized / dynamic**: `@ParameterizedTest` + `@CsvSource`, or `@TestFactory` returning
   `DynamicTest`s (see `ExampleTest`).

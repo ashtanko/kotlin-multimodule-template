@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Command-line entry point of the application.
+ */
+
 package dev.shtanko.template
 
 import dev.shtanko.template.core.Calculator
@@ -22,8 +26,11 @@ import dev.shtanko.template.core.Calculator
  * Application entry point.
  *
  * Minimal `main` so that `./gradlew run` works out of the box. Replace the body
- * with your own application logic.
+ * with your own application logic. Printing to stdout is this CLI's output rather
+ * than a leftover debug print, hence the suppressed print rules; swap in a logger
+ * if you need one.
  */
+@Suppress("DEBUG_PRINT", "ForbiddenMethodCall")
 fun main() {
     val calculator = Calculator()
     println("2 + 3 = ${calculator.add(2, 3)}")
