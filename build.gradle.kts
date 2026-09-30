@@ -18,9 +18,11 @@ plugins {
     alias(libs.plugins.dependency.analysis)
 }
 
-fun isLinux(): Boolean {
+// `os.name` is "Linux" on Linux and "Mac OS X" on macOS; the git hooks are bash scripts, so they're
+// only installed there.
+fun isLinuxOrMacOs(): Boolean {
     val osName = System.getProperty("os.name").lowercase()
-    return listOf("linux", "mac os", "macos").contains(osName)
+    return osName.startsWith("linux") || osName.startsWith("mac")
 }
 
 jacoco {
@@ -176,14 +178,14 @@ tasks {
     }
 
     register<Exec>("installGitHooks") {
-        description = "Installs the pre-commit git hooks from scripts/git-hooks."
+        description = "Installs the git hooks (pre-commit, commit-msg) from scripts/git-hooks."
         group = "git hooks"
         workingDir(rootDir)
         commandLine("chmod")
         args("-R", "+x", ".git/hooks/")
         dependsOn(named("copyGitHooks"))
         onlyIf {
-            isLinux()
+            isLinuxOrMacOs()
         }
         doLast {
             logger.info("Git hooks installed successfully.")
@@ -191,7 +193,7 @@ tasks {
     }
 
     register<Delete>("deleteGitHooks") {
-        description = "Delete the pre-commit git hooks."
+        description = "Deletes the installed git hooks."
         group = "git hooks"
         delete(fileTree(".git/hooks/"))
     }
