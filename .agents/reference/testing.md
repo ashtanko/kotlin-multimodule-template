@@ -13,8 +13,8 @@ Gradle modules; each module's tests live in its own `src/test/kotlin` and run on
 - **Runner**: JUnit 5 (Jupiter).
 - **Assertions**: the examples use plain JUnit assertions
   (`org.junit.jupiter.api.Assertions.assertEquals` / `assertTrue` / `assertAll` / `assertThrows`) —
-  match that. **AssertJ** and **MockK** (and Mockito) are on the test classpath
-  (`build.gradle.kts`) and fine to use when they add clarity, but they aren't required, and the
+  match that. **AssertJ** and **MockK** (and Mockito) are on the test classpath (the
+  `template.kotlin-library` convention plugin) and fine to use when they add clarity, but they aren't required, and the
   current examples use neither AssertJ nor mocks. Don't mock data classes or simple values —
   construct them directly.
 - **Structure**: Arrange-Act-Assert in every test.
@@ -45,15 +45,17 @@ Gradle modules; each module's tests live in its own `src/test/kotlin` and run on
 
 ## Mutation testing
 
-Run `./gradlew pitest` periodically to confirm tests actually catch regressions, not just cover
-lines. This isn't part of `make check`/`make test` — run it deliberately when you want confidence
-beyond line/branch coverage.
+Run `./gradlew :core:pitest` to confirm tests actually catch regressions, not just cover lines.
+It fails below `core`'s `mutationThreshold`, a floor like the coverage gates. It isn't part of
+`make check`/`make test`/CI, so run it deliberately; for survivors, follow the
+[`kotlin-mutation-testing`](../skills/kotlin-mutation-testing/SKILL.md) skill.
 
 ## Coverage
 
 Coverage is dual-gated (see [`CLAUDE.md`](../../CLAUDE.md)): Kover enforces ≥ 80% and Jacoco
 enforces ≥ 50%. Meeting the threshold is not the goal — a test that only pads coverage without
-asserting real behavior should be rewritten or removed, not kept because it's green.
+asserting real behavior should be rewritten or removed, not kept because it's green. Finding and
+closing gaps: the [`kotlin-coverage`](../skills/kotlin-coverage/SKILL.md) skill.
 
 ## Definition of done
 

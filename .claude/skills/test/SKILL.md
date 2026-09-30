@@ -1,12 +1,14 @@
 ---
-description: Run the Kotlin unit test suite (optionally filtered to a class or method)
+name: test
+description: Use to run the Kotlin unit test suite, optionally filtered to a class or method, and report the result.
 argument-hint: "[TestClass | TestClass.method | fully.qualified.Pattern]"
 allowed-tools: Bash(./gradlew test:*), Bash(./gradlew cleanTest test:*), Bash(make test)
 ---
 
-Run the project's JUnit 5 unit tests with Gradle and report the result.
+Run the project's JUnit 5 unit tests with Gradle and report the result. To write or change
+tests, use the `kotlin-testing` skill instead.
 
-## How to run
+## 1. Run
 
 The argument is: `$ARGUMENTS`
 
@@ -24,17 +26,22 @@ The argument is: `$ARGUMENTS`
 If Gradle reports the `test` task as `UP-TO-DATE` and you need a genuine re-run,
 re-run as `./gradlew cleanTest test` (optionally with the same `--tests` filter).
 
-## Reporting
+**Done when:** Gradle actually executed the tests (not `UP-TO-DATE`) and you have the pass/fail
+counts.
+
+## 2. Report
 
 - **Success**: state how many tests ran/passed in one line. Don't dump the log.
 - **Failure**: show only the failing test name(s) and the key assertion or exception
-  from the output — not the whole log. Then open the relevant test/source file,
+  from the output, not the whole log. Then open the relevant test/source file,
   explain the likely cause, and **ask before changing anything**. The HTML report is
   at `<module>/build/reports/tests/test/index.html` (e.g. `core/build/reports/tests/test/index.html`).
 - **Compilation error**: surface the compiler error itself rather than reporting it
   as a test failure.
 - **No matching tests** (`No tests found for given includes`): report that the filter
   matched nothing and suggest the closest test names.
+
+**Done when:** the result is reported in the matching form above.
 
 Do not modify any source or test files unless the user explicitly asks you to fix a
 failure.

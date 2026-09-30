@@ -5,7 +5,7 @@ This project is a multi-module Kotlin/JVM template (`app` + `core` + `buildSrc`)
 ## Key Development Rules
 
 1. **Coding Style & Conventions**:
-   - Follow all conventions defined in [`AGENTS.md`](file:///home/oleksii-shtanko/github/kotlin/kotlin-app-template/AGENTS.md).
+   - Follow all conventions defined in [`AGENTS.md`](../AGENTS.md).
    - Prefer `val` over `var`. Never use `!!`.
    - Single-expression functions should use expression body syntax (`fun add(a: Int, b: Int) = a + b`).
    - Keep line lengths under 120 characters (enforced by Detekt).

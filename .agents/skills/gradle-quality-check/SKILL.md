@@ -1,44 +1,59 @@
 ---
 name: gradle-quality-check
-description: Run formatting, static analysis, unit tests, and mutation tests on the Kotlin codebase.
+description: Use when verifying a Kotlin change before finishing, or diagnosing a build, lint, test, coverage or mutation failure — runs formatting, static analysis, unit tests, the coverage gates and mutation tests.
 ---
 
-# Gradle Quality Check Workflow
+# Gradle quality check
 
-Use this skill when verifying code changes or diagnosing build and lint failures in the repository.
+Run the steps in order; each must be green before the next. What each command covers is in
+[`reference/commands.md`](../../reference/commands.md).
 
-## Commands
+1. **Auto-format and static analysis**
 
-1. **Auto-format & Static Analysis**:
    ```bash
    make check
    ```
-   Runs `spotlessApply` (auto-formats & applies license headers) followed by `detekt`, `ktlintCheck`, and `diktatCheck`.
 
-2. **Run Unit Tests**:
-   ```bash
-   ./gradlew test
-   ```
-   Runs all unit tests across `:app` and `:core`. Scope to a single test with:
-   ```bash
-   ./gradlew :core:test --tests "dev.shtanko.template.core.ExampleTest"
-   ```
+   Runs `spotlessApply` (formatting, license headers), then `spotlessCheck`, `detekt` and
+   `diktatCheck` in every module. **Done when:** `BUILD SUCCESSFUL`. For a detekt finding, fix the
+   code or add a narrow `@Suppress("RuleName")` with a reason; the baseline doesn't grow.
 
-3. **Coverage Verification**:
+2. **Unit tests**
+
    ```bash
-   ./gradlew jacocoTestReport koverHtmlReport
+   make test                                                           # every module
+   ./gradlew :core:test --tests "dev.shtanko.template.core.ExampleTest"  # one class
    ```
 
-4. **Mutation Testing**:
+   **Done when:** every test passes. Writing or fixing tests: the
+   [`kotlin-testing`](../kotlin-testing/SKILL.md) skill.
+
+3. **Coverage gates**
+
    ```bash
-   ./gradlew pitest
+   ./gradlew koverVerify jacocoTestCoverageVerification
    ```
 
-5. **Regenerate Documentation**:
+   Kover ≥ 80% per module (`core`) and Jacoco ≥ 50% aggregated over `app` + `core`
+   (`jacocoTestReport`/`koverHtmlReport` only generate reports). **Done when:** both pass. Closing
+   a gap: the [`kotlin-coverage`](../kotlin-coverage/SKILL.md) skill.
+
+4. **Mutation tests**
+
+   ```bash
+   ./gradlew :core:pitest
+   ```
+
+   **Done when:** the build passes `core`'s `mutationThreshold`. Handling survivors: the
+   [`kotlin-mutation-testing`](../kotlin-mutation-testing/SKILL.md) skill.
+
+5. **Regenerate the README** (only when `config/main.md` changed)
+
    ```bash
    make md
    ```
 
-## Guidelines
-- If `detekt` fails, check if the issue is a new violation or can be resolved without expanding baseline debt.
-- Do not bypass `koverVerify` or coverage gates.
+   **Done when:** `README.md` is rebuilt, from `config/main.md` + the detekt report +
+   `config/license.md`.
+
+Every threshold above is a floor: fix the code or add tests, and keep every gate enabled.

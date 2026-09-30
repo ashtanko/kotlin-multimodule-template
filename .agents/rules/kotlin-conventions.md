@@ -1,13 +1,11 @@
-# Kotlin Development Conventions for AI Agents
+# Kotlin conventions
 
-When working on this repository, strictly adhere to the Kotlin coding conventions and operational rules defined in the root documentation:
+For tools that read `.agents/rules/`. Every rule is written once, in the file linked here.
 
-- **Kotlin Coding Conventions**: Refer to [`AGENTS.md`](file:///home/oleksii-shtanko/github/kotlin/kotlin-app-template/AGENTS.md) for conventions on coroutines, dispatcher injection, scope functions, immutability, error handling, and testing style.
-- **Repository Operations & Tooling**: Refer to [`CLAUDE.md`](file:///home/oleksii-shtanko/github/kotlin/kotlin-app-template/CLAUDE.md) for build, static analysis, coverage, and CI conventions.
-
-## Key Rules
-1. **JVM-Only**: Target JVM 17+ (Kotlin 2.2 language level pinned via convention plugin). No Android dependencies.
-2. **Dispatcher Injection**: Always inject `CoroutineDispatcher` into classes/services doing background work (defaulting to `Dispatchers.IO`).
-3. **Immutability & Null-Safety**: Prefer `val` over `var`. Never use `!!`.
-4. **Testing**: JUnit 5 + Turbine for Flows + `runTest` with `StandardTestDispatcher`.
-5. **Quality Gates**: Always run `make check` and `make test` before completing tasks.
+- **How to write the code**: [`AGENTS.md`](../../AGENTS.md), then the context map in
+  [`.agents/README.md`](../README.md) for the reference or skill a task needs:
+  - naming, null-safety, data modeling, SOLID: [`reference/coding-conventions.md`](../reference/coding-conventions.md)
+  - tests: [`reference/testing.md`](../reference/testing.md) and the
+    [`kotlin-testing`](../skills/kotlin-testing/SKILL.md) skill
+  - which check to run: [`reference/commands.md`](../reference/commands.md)
+- **How the repo operates** (build, tooling, quality gates, CI, hooks): [`CLAUDE.md`](../../CLAUDE.md)

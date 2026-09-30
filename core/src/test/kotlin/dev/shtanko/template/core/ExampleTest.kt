@@ -65,6 +65,16 @@ class ExampleTest {
     }
 
     @Test
+    fun `Square root of a perfect square is exact`() {
+        assertEquals(3.0, calculator.squareRoot(9))
+    }
+
+    @Test
+    fun `Square root of a negative number is NaN`() {
+        assertTrue(calculator.squareRoot(-4).isNaN())
+    }
+
+    @Test
     fun `isEmpty should return true for empty lists`() {
         val list: List<String> = emptyList()
         assertTrue(list::isEmpty)
