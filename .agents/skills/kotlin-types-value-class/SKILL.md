@@ -78,7 +78,7 @@ Before replacing an existing wrapper, check the contract that callers observe:
 
 - The type needs multiple fields → data class.
 - The type needs custom `equals`/`hashCode` → data class.
-- The type is used heavily as a nullable or generic in performance-critical code → measure autoboxing cost first (see `./gradlew pitest` and JMH-style measurement before committing to a change purely for performance).
+- The type is used heavily as a nullable or generic in performance-critical code → measure autoboxing cost first (JMH-style measurement) before committing to a change purely for performance.
 - The project does not need the type-safety distinction → a type alias or primitive is sufficient.
 - The replacement would silently change JSON, Java, or reflection-based framework behavior.
 

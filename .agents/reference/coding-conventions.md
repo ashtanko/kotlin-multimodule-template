@@ -8,7 +8,7 @@ mechanics), see [`CLAUDE.md`](../../CLAUDE.md). The two don't duplicate each oth
 
 1. **Tooling enforces the mechanics; this file covers the judgment.** Formatting, indentation,
    import ordering, expression bodies, naming, modifier order, and trailing commas are checked
-   automatically by `ktlint`, `detekt`, `diktat`, and `spotless`. Don't hand-optimize them from
+   automatically by `detekt`, `diktat`, and `spotless`. Don't hand-optimize them from
    memory — run `./gradlew spotlessApply` and `make check` and let the tools decide (see
    [`commands.md`](commands.md)). What follows focuses on the decisions the linters *can't* make
    for you.
@@ -48,9 +48,9 @@ Running `make check` / `./gradlew spotlessApply` covers all of the following; th
 only so you recognize them, not so you memorize them:
 
 - **Formatting & indentation**: 4-space indent, LF line endings, final newline, no trailing
-  whitespace (`.editorconfig`, ktlint, spotless).
+  whitespace (`.editorconfig`, spotless).
 - **Line length**: keep lines **≤ 120 chars** — detekt's `MaxLineLength`
-  (`config/detekt/detekt.yml`) fails the build past 120. (Note: `.editorconfig`'s ktlint
+  (`config/detekt/detekt.yml`) fails the build past 120. (Note: `.editorconfig`'s
   `max_line_length` is 180, so detekt is the binding constraint; the IDE shows visual guides at
   80/120/180.)
 - **No wildcard imports** (e.g. `import java.util.*`) — they pollute the namespace and break when

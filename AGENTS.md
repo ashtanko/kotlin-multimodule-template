@@ -26,7 +26,7 @@ This file is the canonical entry point for coding agents working in this reposit
 - Keep dependency and plugin versions in `gradle/libs.versions.toml`; don't hardcode versions
   elsewhere.
 - Formatting, import order, and license headers are enforced by tooling (`spotless`, `detekt`,
-  `ktlint`, `diktat`). Run `./gradlew spotlessApply` / `make check` rather than hand-formatting —
+  `diktat`). Run `./gradlew spotlessApply` / `make check` rather than hand-formatting —
   see [`.agents/reference/commands.md`](.agents/reference/commands.md).
 - Don't edit generated output (`build/`, `README.md`'s body, `config/detekt/detekt-baseline.xml`)
   unless the task explicitly requires it. `README.md` is generated from `config/main.md` — edit
@@ -40,8 +40,8 @@ This file is the canonical entry point for coding agents working in this reposit
 2. Make the smallest coherent change that follows the existing package and file conventions —
    mirror the canonical example files listed in
    [`.agents/reference/coding-conventions.md`](.agents/reference/coding-conventions.md).
-3. Add or update tests with behavior changes, following
-   [`.agents/reference/testing.md`](.agents/reference/testing.md).
+3. Add or update tests with behavior changes, following the
+   [`kotlin-testing`](.agents/skills/kotlin-testing/SKILL.md) skill.
 4. Run the narrowest useful check first, then broaden in proportion to the change — see
    [`.agents/reference/commands.md`](.agents/reference/commands.md). Run `make check && make test`
    before finishing.
@@ -56,7 +56,10 @@ This file is the canonical entry point for coding agents working in this reposit
 - `StateFlow`/`SharedFlow`/`Channel` and event modeling: [`.agents/skills/kotlin-flow-state-event-modeling/SKILL.md`](.agents/skills/kotlin-flow-state-event-modeling/SKILL.md)
 - Function ownership (member/top-level/extension): [`.agents/skills/kotlin-functions/SKILL.md`](.agents/skills/kotlin-functions/SKILL.md)
 - `value class` vs `data class`: [`.agents/skills/kotlin-types-value-class/SKILL.md`](.agents/skills/kotlin-types-value-class/SKILL.md)
-- Running formatting/static-analysis/tests/mutation checks: [`.agents/skills/gradle-quality-check/SKILL.md`](.agents/skills/gradle-quality-check/SKILL.md)
+- Running formatting/static-analysis/tests/coverage/mutation checks: [`.agents/skills/gradle-quality-check/SKILL.md`](.agents/skills/gradle-quality-check/SKILL.md)
 - Testing strategy: [`.agents/reference/testing.md`](.agents/reference/testing.md)
+- Writing or changing tests (module, examples, red-first regressions): [`.agents/skills/kotlin-testing/SKILL.md`](.agents/skills/kotlin-testing/SKILL.md)
+- Coverage gate failing, or finding uncovered lines: [`.agents/skills/kotlin-coverage/SKILL.md`](.agents/skills/kotlin-coverage/SKILL.md)
+- Mutation testing (PIT) and surviving mutants: [`.agents/skills/kotlin-mutation-testing/SKILL.md`](.agents/skills/kotlin-mutation-testing/SKILL.md)
 - Choosing which command to run: [`.agents/reference/commands.md`](.agents/reference/commands.md)
 - Build, CI, tooling, versions, generated README, git hooks: [`CLAUDE.md`](CLAUDE.md)

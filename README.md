@@ -24,12 +24,13 @@ A GitHub template for bootstrapping **Kotlin** projects with **static analysis**
 - JVM 17+ target.
 - 100% Gradle Kotlin DSL setup (Gradle 9.5).
 - CI setup with GitHub Actions (builds on JDK 17 and 21).
-- Aggressive Kotlin static analysis via `detekt`, `ktlint`, `diktat`, and `spotless`.
+- Aggressive Kotlin static analysis via `detekt`, `diktat`, and `spotless`.
 - Test suite with JUnit 5, AssertJ, MockK, Mockito, and Turbine.
 - Code coverage via Jacoco and Kover (≥ 80% enforced).
-- Mutation testing via Pitest.
+- Mutation testing via Pitest, with a mutation-score floor on `core`.
 - API documentation via Dokka.
-- Pre-commit Git hooks for automated quality checks.
+- Git hooks: pre-commit quality checks (partial commits stay partial) and Conventional Commits messages.
+- Claude Code setup: skills for writing tests, closing coverage gaps and killing surviving mutants, and hooks that protect the quality gates and lint and test agent edits.
 - Project rename script for quick customization.
 - GitHub Issues templates (bug report + feature request).
 
@@ -105,15 +106,16 @@ Run with `--help` for all available options, or `--dry-run` to preview changes.
 | `./gradlew test`               | Run the test suite                             |
 | `./gradlew run`                | Run the application                            |
 | `./gradlew detekt`             | Run Detekt static analysis                     |
-| `./gradlew ktlintCheck`        | Check code style with ktlint                   |
 | `./gradlew diktatCheck`        | Check code style with Diktat                   |
 | `./gradlew spotlessCheck`      | Check formatting and license headers           |
 | `./gradlew spotlessApply`      | Auto-format code and apply license headers     |
 | `./gradlew jacocoTestReport`   | Generate Jacoco coverage report                |
 | `./gradlew koverHtmlReport`    | Generate Kover HTML coverage report            |
 | `./gradlew koverXmlReport`     | Generate Kover XML coverage report             |
+| `./gradlew koverVerify`        | Enforce Kover's per-module floor (`core` ≥ 80%) |
+| `./gradlew jacocoTestCoverageVerification` | Enforce the aggregated Jacoco floor (≥ 50%) |
 | `./gradlew dokkaGenerateHtml`  | Generate HTML API documentation (per module)   |
-| `./gradlew pitest`             | Run mutation tests                             |
+| `./gradlew :core:pitest`       | Run mutation tests (fails below the score floor) |
 
 ## Environment Variables
 
@@ -148,10 +150,11 @@ Generate coverage reports:
 ./gradlew koverHtmlReport    # Kover
 ```
 
-Run mutation testing:
+Run mutation testing (on `core`; the build fails below its `mutationThreshold`):
 
 ```bash
-./gradlew pitest
+./gradlew :core:pitest
+./gradlew :core:pitest -PpitestTargetClasses='dev.shtanko.template.core.Calculator*'  # only some classes, no threshold
 ```
 
 Coverage is enforced at ≥ 50% via Jacoco, aggregated across `app` + `core` at the root. Kover enforces ≥ 80% per module with meaningful logic (`core`); `app` is bootstrap/wiring code and isn't gated.
@@ -187,14 +190,20 @@ kotlin-app-template/
 ├── config/
 │   ├── main.md                     # Source for the main README section
 │   ├── license.md                  # License section appended to README
-│   └── detekt/
-│       ├── detekt.yml              # Detekt rule configuration (shared by every module)
-│       └── detekt-baseline.xml     # Detekt baseline for existing issues (shared)
+│   ├── detekt/
+│   │   ├── detekt.yml              # Detekt rule configuration (shared by every module)
+│   │   └── detekt-baseline.xml     # Detekt baseline for existing issues (shared)
+│   └── pitest/
+│       └── equivalent-mutants.txt  # Mutants no test can kill, with the reason
 ├── spotless/
 │   └── copyright.kt               # License header template for Spotless
 ├── scripts/
 │   ├── git-hooks/
-│   │   └── pre-commit.sh           # Pre-commit hook (static analysis)
+│   │   ├── pre-commit.sh           # Pre-commit hook (format, then static analysis)
+│   │   └── commit-msg.sh           # Conventional Commits check
+│   ├── claude/
+│   │   ├── gate-guard.sh           # Claude Code PreToolUse hook: protects generated files and quality gates
+│   │   └── lint-hook.sh            # Claude Code Stop hook: lint + test what the agent changed
 │   └── rename-project.sh           # Project rename utility
 ├── .github/
 │   └── workflows/
@@ -204,17 +213,18 @@ kotlin-app-template/
 ├── diktat-analysis.yml              # Diktat analysis configuration
 ├── checksum.sh                      # Checksum verification script
 ├── AGENTS.md                        # Canonical AI agent entry point
-└── .agents/                         # Agent context map, reference docs, and Kotlin skills
-    ├── README.md                    # Context map (what to load for which task)
-    ├── reference/                   # coding-conventions.md, testing.md, commands.md
-    └── skills/                      # Portable SKILL.md procedures (coroutines, Flow, control flow, …)
+├── .agents/                         # Agent context map, reference docs, and Kotlin skills
+│   ├── README.md                    # Context map (what to load for which task)
+│   ├── reference/                   # coding-conventions.md, testing.md, commands.md
+│   └── skills/                      # Portable SKILL.md procedures (testing, coverage, mutation, coroutines, …)
+└── .claude/                         # Claude Code: hooks (settings.json), skill wrappers, path-scoped rules
 ```
 
 ## CI/CD
 
 The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs on every push to `main`, on pull requests, and on demand. Two jobs run in parallel:
 
-1. **Static analysis** — `make lint` (`spotless`, `detekt`, `ktlint`, `diktat`) once; detekt and diktat findings are uploaded to GitHub code scanning, so they show up as annotations on the PR.
+1. **Static analysis** — `make lint` (`spotless`, `detekt`, `diktat`) once; detekt and diktat findings are uploaded to GitHub code scanning, so they show up as annotations on the PR.
 2. **Test (JDK 17 and 21)** — builds, runs the tests *on each JDK* (`-PtestJdk`), and enforces the Kover/Jacoco coverage gates.
 
 Codecov and Codacy are optional: add the `CODECOV_TOKEN` / `CODACY_PROJECT_TOKEN` repository secrets to enable per-module Kover coverage uploads and the Codacy Analysis CLI; without them those steps are skipped instead of failing. Reports are attached to failed runs as artifacts, and dependency and action updates come from Renovate (`renovate.json`), with actions pinned to commit SHAs.
@@ -271,7 +281,7 @@ Types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`.
 
 ## Findings (0)
 
-generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-09-28 11:33:37 UTC
+generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-09-30 17:27:35 UTC
 
 
 ## Module: core
@@ -280,9 +290,9 @@ generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-09-28 11:33:
 
 ## Metrics
 
-* 10 number of properties
+* 12 number of properties
 
-* 21 number of functions
+* 24 number of functions
 
 * 5 number of classes
 
@@ -292,29 +302,29 @@ generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-09-28 11:33:
 
 ## Complexity Report
 
-* 393 lines of code (loc)
+* 424 lines of code (loc)
 
-* 186 source lines of code (sloc)
+* 211 source lines of code (sloc)
 
-* 119 logical lines of code (lloc)
+* 136 logical lines of code (lloc)
 
-* 165 comment lines of code (cloc)
+* 167 comment lines of code (cloc)
 
-* 23 cyclomatic complexity (mcc)
+* 26 cyclomatic complexity (mcc)
 
 * 4 cognitive complexity
 
 * 0 number of total code smells
 
-* 88% comment source ratio
+* 79% comment source ratio
 
-* 193 mcc per 1,000 lloc
+* 191 mcc per 1,000 lloc
 
 * 0 code smells per 1,000 lloc
 
 ## Findings (0)
 
-generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-09-28 11:33:37 UTC
+generated with [detekt version 1.23.8](https://detekt.dev/) on 2026-09-30 17:24:11 UTC
 
 # License
 
