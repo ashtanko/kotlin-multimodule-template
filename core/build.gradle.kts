@@ -46,6 +46,12 @@ plugins.withId("info.solidsoft.pitest") {
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: satisfyingNumberOfCores)
         outputFormats.set(setOf("XML", "HTML"))
         junit5PluginVersion.set(libs.versions.pitestJunit5.get())
+        // A floor: the whole-module score (28/33 = 84.8%) rounded down to a multiple of 5. Raise it as
+        // the score grows (the kotlin-mutation-testing skill); a narrowed run skips it, since a subset's
+        // score isn't comparable.
+        if (narrowedTargetClasses == null) {
+            mutationThreshold.set(80)
+        }
     }
 }
 

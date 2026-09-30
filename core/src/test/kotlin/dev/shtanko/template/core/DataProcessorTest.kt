@@ -17,10 +17,15 @@
 package dev.shtanko.template.core
 
 import app.cash.turbine.test
+import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 
@@ -79,5 +84,21 @@ class DataProcessorTest {
             // Flow should complete
             awaitComplete()
         }
+    }
+
+    @Test
+    fun `processDataStream delivers every result in order to a slow collector`() = runTest(testDispatcher) {
+        // Act: collect here, not through Turbine, so each upstream emit waits for the slow collector
+        val results = dataProcessor.processDataStream()
+            .onEach { delay(10.milliseconds) }
+            .toList()
+
+        // Assert: the first try and both retries each deliver ids 1 and 2, then the caught failure
+        val attempt = listOf("Processed ID: 1", "Processed ID: 2")
+        assertAll(
+            "results in emission order",
+            { assertEquals(attempt + attempt + attempt, results.dropLast(1).map { it.getOrThrow() }) },
+            { assertEquals("Invalid ID: 3", results.last().exceptionOrNull()?.message) },
+        )
     }
 }

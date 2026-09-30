@@ -5,3 +5,9 @@
 # One per line:  <key> | <why no test can tell the mutant from the original>
 # <key> is what the summary script prints for the mutant. It includes the line number, so an entry
 # stops matching when its code moves; re-check the reason before re-recording it.
+
+dev.shtanko.template.core.DataProcessor$processDataStream$1#invokeSuspend NullReturnValsMutator DataProcessor.kt:76 | Unreachable, value discarded: the flow { } body's final `return Unit` needs the loop to finish, but fetchIds() always returns id 3 and processId(3) always throws; SafeFlow discards the body's Unit anyway.
+dev.shtanko.template.core.DataProcessor$processDataStream$$inlined$map$1$1#invokeSuspend NullReturnValsMutator unknown_source:0 | Unreachable: the inlined map's collect continuation returns only after the upstream flow completes normally, which never happens (see DataProcessor.kt:76), and would return a discarded Unit.
+dev.shtanko.template.core.DataProcessor$processDataStream$$inlined$map$1#collect NullReturnValsMutator SafeCollector.common.kt:108 | Unreachable, value discarded: the inlined map's collect reaches its final `return Unit` only when the upstream flow completes normally (never, see DataProcessor.kt:76).
+dev.shtanko.template.core.DataProcessor$processDataStream$$inlined$map$1$2#emit NullReturnValsMutator Emitters.kt:48 | Value discarded: the final `return Unit` of the inlined map's emit (not a COROUTINE_SUSPENDED return: it survives the slow-collector test, where emit suspends); callers of FlowCollector.emit ignore its Unit.
+dev.shtanko.template.core.DataProcessor$processDataStream$4#invokeSuspend NullReturnValsMutator DataProcessor.kt:88 | Value discarded: the catch { } action's final `return Unit` (bytecode line 88; its COROUTINE_SUSPENDED return is on line 86, and the mutant survives the slow-collector test, where that emit suspends); catch ignores the action's Unit.
