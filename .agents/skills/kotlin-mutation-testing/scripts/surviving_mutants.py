@@ -59,8 +59,9 @@ def main():
     detected = sum(m.get("detected") == "true" for m in mutants)
     no_coverage = sum(m.get("status") == "NO_COVERAGE" for m in mutants)
     covered = total - no_coverage
-    # Rounded like PIT's own report, which is also what `mutationThreshold` is compared against.
-    score = f"{round(100 * detected / total)}%" if total else "n/a"
+    # Rounded like PIT's own report, which is also what `mutationThreshold` is compared against; the
+    # exact value is what a new threshold is rounded down from.
+    score = f"{round(100 * detected / total)}% (exact {100 * detected / total:.1f}%)" if total else "n/a"
     strength = f"{round(100 * detected / covered)}%" if covered else "n/a"
     print(f"PIT :{args.module}: {total} mutants, {detected} detected — mutation score {score}, "
           f"test strength {strength} ({detected}/{covered} covered) — {report.relative_to(ROOT)}")

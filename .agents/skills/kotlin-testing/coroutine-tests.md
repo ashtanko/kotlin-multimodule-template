@@ -20,24 +20,22 @@ is part of the contract, assert it on the scheduler's clock:
 Turbine's `test { }` collects in its own coroutine, and `flowOn` puts a channel in front of it
 whenever the collector runs on a different dispatcher. The upstream then never waits for the
 collector, so a test that goes through Turbine can't see what happens when the collector is slow.
-To exercise that, collect in the test body with a collector that suspends:
+To exercise that, collect in the test body behind a step that suspends (from `DataProcessorTest`):
 
 ```kotlin
 @Test
-fun `slow collector still gets every result in order`() = runTest(testDispatcher) {
-    val results = mutableListOf<Result<String>>()
+fun `processDataStream delivers every result in order to a slow collector`() = runTest(testDispatcher) {
+    val results = dataProcessor.processDataStream()
+        .onEach { delay(10.milliseconds) }  // the collector is busy, so upstream `emit` suspends
+        .toList()
 
-    subject.stream().collect { result ->
-        results += result
-        delay(10.milliseconds)  // the collector is busy, so upstream `emit` suspends
-    }
-
-    assertEquals(expectedSequence, results)
+    // assert the complete, ordered `results`
 }
 ```
 
 `runTest(testDispatcher)` runs the body on the same dispatcher the subject's `flowOn` uses, so the
-pipeline stays on one coroutine and each upstream `emit` waits for the collector.
+pipeline stays on one coroutine and each upstream `emit` waits for the collector. (`toList()`
+rather than a hand-filled `mutableListOf`: diktat wants explicit types on generic locals.)
 
 ## Cancellation and errors
 

@@ -61,5 +61,5 @@ Repeat steps 1–2 with a whole-module run.
 
 **Done when:** the script exits 0 (every SURVIVED/NO_COVERAGE mutant is killed or recorded) and
 the build passes the threshold. Report the score before and after, and which mutants you recorded
-as equivalent. If the score now clears the next multiple of 5 above `mutationThreshold`, raise
-the threshold to it.
+as equivalent. If the exact score (the script prints it) now clears the next multiple of 5 above
+`mutationThreshold`, raise the threshold to it.
