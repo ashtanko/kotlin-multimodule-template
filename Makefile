@@ -3,7 +3,7 @@
 # Static-analysis tasks. Each fans out to every module (template.kotlin-library convention plugin),
 # with every diktat and detekt rule enabled over main and test sources. --continue reports every
 # failing tool/module in one pass instead of stopping at the first.
-LINT_TASKS := spotlessCheck detekt ktlintCheck diktatCheck
+LINT_TASKS := spotlessCheck detekt diktatCheck
 
 check:
 	./gradlew spotlessApply $(LINT_TASKS) --continue --profile --daemon

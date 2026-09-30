@@ -62,7 +62,7 @@ spotless {
 // root) currently fails to resolve kotlin-stdlib:2.4.10 (published as a Kotlin Multiplatform
 // module) inside its internal `koverExternalArtifacts` configuration — a Kover 0.9.9 limitation,
 // reproducible even outside this refactor, and there's no newer Kover release yet. So Kover is
-// instead applied per module (by the convention plugin, alongside detekt/ktlint/diktat) and each
+// instead applied per module (by the convention plugin, alongside detekt/diktat) and each
 // module enforces its own >=80% bound; `./gradlew koverVerify`/`koverXmlReport` from the root
 // still fans out to `:app`/`:core` the same way `./gradlew detekt` does.
 

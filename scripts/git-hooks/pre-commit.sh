@@ -12,7 +12,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 # 3) Run full verification suite
-if ./gradlew detekt ktlintCheck diktatCheck spotlessCheck --profile --daemon; then
+if ./gradlew detekt diktatCheck spotlessCheck --profile --daemon; then
     echo "*********************************************"
     echo "      Static analysis no problems found      "
     echo "*********************************************"

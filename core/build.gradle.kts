@@ -31,16 +31,21 @@ kover {
 plugins.withId("info.solidsoft.pitest") {
     configure<info.solidsoft.gradle.pitest.PitestPluginExtension> {
         val satisfyingNumberOfCores = Runtime.getRuntime().availableProcessors().div(2).takeIf { it > 0 } ?: 1
+        // `-PpitestTargetClasses=<glob>[,<glob>...]` narrows a run to the classes being worked on, since
+        // whole-module runs get slow as the code grows. End the glob with `*`
+        // (`dev.shtanko.template.core.DataProcessor*`) to keep the lambda/coroutine classes Kotlin
+        // generates for a class.
+        val narrowedTargetClasses = providers.gradleProperty("pitestTargetClasses").orNull
         jvmArgs.set(listOf("-Xmx2048m"))
         avoidCallsTo.set(setOf("kotlin.jvm.internal", "kotlin.Result"))
-        targetClasses.set(setOf("dev.shtanko.template.*"))
+        targetClasses.set(narrowedTargetClasses?.split(',')?.map(String::trim)?.toSet() ?: setOf("dev.shtanko.template.*"))
         targetTests.set(setOf("dev.shtanko.template.*"))
         pitestVersion.set(libs.versions.pitest.get())
         verbose.set(true)
         timestampedReports.set(false)
         threads.set(System.getenv("PITEST_THREADS")?.toInt() ?: satisfyingNumberOfCores)
         outputFormats.set(setOf("XML", "HTML"))
-        junit5PluginVersion.set("1.2.1")
+        junit5PluginVersion.set(libs.versions.pitestJunit5.get())
     }
 }
 

@@ -34,7 +34,7 @@ fi
 
 # 2) Enforce the static-analysis suite. --continue reports every failing module/tool in one pass
 #    instead of stopping at the first one.
-if out="$(./gradlew --quiet --continue detekt ktlintCheck diktatCheck spotlessCheck 2>&1)"; then
+if out="$(./gradlew --quiet --continue detekt diktatCheck spotlessCheck 2>&1)"; then
   rm -f "$counter_file"
   exit 0
 fi

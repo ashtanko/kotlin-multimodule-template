@@ -7,9 +7,9 @@ detekt = "1.23.8"                # https://github.com/detekt/detekt
 dokka = "2.2.0"                  # https://github.com/Kotlin/dokka
 spotless = "8.10.0"               # https://github.com/diffplug/spotless
 dependency = "1.33.0"            # https://github.com/autonomousapps/dependency-analysis-gradle-plugin
-pitest = "1.19.0"                # https://plugins.gradle.org/plugin/info.solidsoft.pitest | https://search.maven.org/artifact/org.pitest/pitest
-pinterestKtlint = "0.51.0-FINAL" # https://github.com/pinterest/ktlint
-ktlint = "14.2.0"                # https://github.com/JLLeitschuh/ktlint-gradle
+pitestPlugin = "1.19.0"          # Gradle plugin | https://plugins.gradle.org/plugin/info.solidsoft.pitest
+pitest = "1.19.0"                # PIT core | https://search.maven.org/artifact/org.pitest/pitest
+pitestJunit5 = "1.2.1"           # PIT JUnit 5 plugin | https://search.maven.org/artifact/org.pitest/pitest-junit5-plugin
 assertj = "3.27.7"               # https://mvnrepository.com/artifact/org.assertj/assertj-core | https://assertj.github.io/doc
 kover = "0.9.9"                  # https://github.com/Kotlin/kotlinx-kover
 diktat = "2.0.0"                 # https://github.com/saveourtool/diktat
@@ -22,9 +22,8 @@ turbine = "1.2.1"
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 detekt-gradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 spotless-gradlePlugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
-ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint" }
 diktat-gradlePlugin = { module = "com.saveourtool.diktat:diktat-gradle-plugin", version.ref = "diktat" }
-pitest-gradlePlugin = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "pitest" }
+pitest-gradlePlugin = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "pitestPlugin" }
 dokka-gradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 kover-gradlePlugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
 
@@ -37,8 +36,6 @@ kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
-pinterestKtlint = { module = "com.pinterest:ktlint", version.ref = "pinterestKtlint" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-bdd = { module = "io.mockk:mockk-bdd", version.ref = "mockk" }
@@ -50,6 +47,11 @@ mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-kotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version.ref = "mockito_kotlin" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
+# PIT runtime artifacts. Not added as dependencies: the pitest Gradle plugin resolves them itself from
+# `pitestVersion`/`junit5PluginVersion` (core/build.gradle.kts). Declared here so Renovate tracks them.
+pitest-core = { module = "org.pitest:pitest", version.ref = "pitest" }
+pitest-junit5 = { module = "org.pitest:pitest-junit5-plugin", version.ref = "pitestJunit5" }
+
 [plugins]
 kt-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kt-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
@@ -57,7 +59,6 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency" }
-pitest = { id = "info.solidsoft.pitest", version.ref = "pitest" }
+pitest = { id = "info.solidsoft.pitest", version.ref = "pitestPlugin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 diktat = { id = "com.saveourtool.diktat", version.ref = "diktat" }
-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

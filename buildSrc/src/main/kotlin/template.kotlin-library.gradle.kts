@@ -1,7 +1,7 @@
 /*
  * Convention plugin shared by every pure-Kotlin/JVM subproject (`app`, `core`, ...).
  *
- * Bundles the Kotlin/JVM toolchain, the static-analysis stack (detekt/ktlint/diktat/spotless), Jacoco
+ * Bundles the Kotlin/JVM toolchain, the static-analysis stack (detekt/diktat/spotless), Jacoco
  * instrumentation, and the JUnit 5 test stack that used to live inline in the single-module
  * root `build.gradle.kts`. See CLAUDE.md ("Versions are centralized") for the reasoning behind
  * keeping tool versions in `gradle/libs.versions.toml` rather than here.
@@ -11,14 +11,11 @@ import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
-import org.jlleitschuh.gradle.ktlint.KtlintExtension
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
     kotlin("jvm")
     jacoco
     id("io.gitlab.arturbosch.detekt")
-    id("org.jlleitschuh.gradle.ktlint")
     id("com.saveourtool.diktat")
     id("com.diffplug.spotless")
     id("org.jetbrains.dokka")
@@ -47,26 +44,6 @@ jacoco {
 // only meaningful for modules with actual business logic to exercise. `core` opts in (see
 // core/build.gradle.kts); `app` is bootstrap/wiring code with nothing worth unit-testing, so it
 // keeps Kover's reporting (koverXmlReport/koverHtmlReport still work) without the verify gate.
-
-configure<KtlintExtension> {
-    debug.set(true)
-    verbose.set(true)
-    android.set(false)
-    outputToConsole.set(true)
-    outputColorName.set("RED")
-    ignoreFailures.set(true)
-    enableExperimentalRules.set(true)
-    reporters {
-        reporter(ReporterType.PLAIN)
-        reporter(ReporterType.CHECKSTYLE)
-        reporter(ReporterType.JSON)
-        reporter(ReporterType.HTML)
-    }
-    filter {
-        exclude("**/generated/**")
-        include("**/kotlin/**")
-    }
-}
 
 // Every rule in the root diktat-analysis.yml is enabled; the plugin resolves that file from the
 // root project, so each module shares one config. Test sources are included too (see `testDirs`
@@ -121,7 +98,7 @@ detektReportMerge.configure {
 }
 
 tasks {
-    // `check` (and so `build`) otherwise runs detekt/ktlint/spotless but not diktat.
+    // `check` (and so `build`) otherwise runs detekt/spotless but not diktat.
     named("check") {
         dependsOn("diktatCheck")
     }
@@ -144,7 +121,6 @@ tasks {
             "java.base/jdk.internal.util=ALL-UNNAMED",
             "--add-exports",
             "java.base/sun.security.action=ALL-UNNAMED",
-            "-Dkotlintest.tags.exclude=Integration,EndToEnd,Performance",
         )
         testLogging {
             events("passed", "skipped", "failed")
