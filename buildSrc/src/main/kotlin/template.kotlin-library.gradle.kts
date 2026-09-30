@@ -10,6 +10,7 @@ import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
 
 plugins {
@@ -125,6 +126,13 @@ tasks {
         testLogging {
             events("passed", "skipped", "failed")
             showStandardStreams = true
+            // Under `--quiet` (how the Claude Code Stop hook runs Gradle) still name each failing test
+            // and its assertion message, instead of only the path of the HTML report.
+            quiet {
+                events("failed")
+                exceptionFormat = TestExceptionFormat.FULL
+                showStackTraces = false
+            }
         }
         finalizedBy(named("jacocoTestReport"))
     }
