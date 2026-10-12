@@ -13,6 +13,8 @@ pitestJunit5 = "1.2.1"           # PIT JUnit 5 plugin | https://search.maven.org
 assertj = "3.27.7"               # https://mvnrepository.com/artifact/org.assertj/assertj-core | https://assertj.github.io/doc
 kover = "0.9.9"                  # https://github.com/Kotlin/kotlinx-kover
 diktat = "2.0.0"                 # https://github.com/saveourtool/diktat
+jacoco = "0.8.15"                # https://www.jacoco.org/jacoco
+coverallsJacoco = "1.2.20"       # https://github.com/nbaztec/coveralls-gradle-plugin | https://plugins.gradle.org/plugin/com.github.nbaztec.coveralls-jacoco
 mockito = "5.23.0"               # https://mvnrepository.com/artifact/org.mockito/mockito-core
 mockito_kotlin = "2.2.0"         # https://mvnrepository.com/artifact/com.nhaarman.mockitokotlin2/mockito-kotlin
 turbine = "1.2.1"
@@ -62,3 +64,4 @@ dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.r
 pitest = { id = "info.solidsoft.pitest", version.ref = "pitestPlugin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 diktat = { id = "com.saveourtool.diktat", version.ref = "diktat" }
+coveralls-jacoco = { id = "com.github.nbaztec.coveralls-jacoco", version.ref = "coverallsJacoco" }

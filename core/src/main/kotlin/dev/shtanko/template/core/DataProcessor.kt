@@ -45,6 +45,11 @@ class DataProcessor(
      *
      * @return List of IDs.
      */
+    // Detekt false positive: a single-expression `suspend fun` body consisting solely of
+    // `withContext { ... }` is reported as redundant, but removing `suspend` fails to compile
+    // ("can only be called from a coroutine or another suspend function") because `withContext`
+    // itself is a suspend function.
+    @Suppress("RedundantSuspendModifier")
     suspend fun fetchIds(): List<Int> = withContext(ioDispatcher) {
         delay(100.milliseconds)  // Simulate network delay
         listOf(1, 2, 3, 4, 5)
@@ -56,6 +61,8 @@ class DataProcessor(
      * @param id The ID to process.
      * @return Processed string representation.
      */
+    // Detekt false positive: see the note on `fetchIds` above.
+    @Suppress("RedundantSuspendModifier")
     suspend fun processId(id: Int): String = withContext(ioDispatcher) {
         delay(50.milliseconds)  // Simulate processing time
         require(id != 3) { "Invalid ID: $id" }
