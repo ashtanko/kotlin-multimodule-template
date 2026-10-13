@@ -33,6 +33,9 @@ This file is the canonical entry point for coding agents working in this reposit
   that instead and run `make md`.
 - Preserve unrelated work in a dirty worktree. Inspect the diff before editing and never clean up
   changes you did not make.
+- Some skills are vendored from upstream (pinned in `skills-lock.json`) and generic. When one
+  disagrees with `.agents/reference/` or a repo-authored skill (e.g. Kotest or hardcoded versions),
+  follow the repo file.
 
 ## Working method
 
@@ -62,4 +65,7 @@ This file is the canonical entry point for coding agents working in this reposit
 - Coverage gate failing, or finding uncovered lines: [`.agents/skills/kotlin-coverage/SKILL.md`](.agents/skills/kotlin-coverage/SKILL.md)
 - Mutation testing (PIT) and surviving mutants: [`.agents/skills/kotlin-mutation-testing/SKILL.md`](.agents/skills/kotlin-mutation-testing/SKILL.md)
 - Choosing which command to run: [`.agents/reference/commands.md`](.agents/reference/commands.md)
+- General Kotlin idioms (delegation, DSL builders, sequences), vendored: [`.agents/skills/kotlin-patterns/SKILL.md`](.agents/skills/kotlin-patterns/SKILL.md)
+- Migrating `kotlinx.collections.immutable` to 0.5.x, vendored: [`.agents/skills/kotlin-tooling-immutable-collections-0-5-x-migration/SKILL.md`](.agents/skills/kotlin-tooling-immutable-collections-0-5-x-migration/SKILL.md)
+- Moving the build from Gradle to the Kotlin Toolchain (Amper), vendored: the `kotlin-tooling-*toolchain*` skills — see the [context map](.agents/README.md#context-map)
 - Build, CI, tooling, versions, generated README, git hooks: [`CLAUDE.md`](CLAUDE.md)

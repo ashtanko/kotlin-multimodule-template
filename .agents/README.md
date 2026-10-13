@@ -23,7 +23,9 @@ This directory contains shared, vendor-neutral context for coding agents.
     ├── kotlin-testing/               # + coroutine-tests.md
     ├── kotlin-coverage/              # + partial-lines.md, scripts/uncovered_lines.py
     ├── kotlin-mutation-testing/      # + mutators.md, equivalent-mutants.md, scripts/surviving_mutants.py
-    └── gradle-quality-check/
+    ├── gradle-quality-check/
+    ├── kotlin-patterns/              # vendored: general Kotlin idioms
+    └── kotlin-tooling-*/             # vendored: immutable-collections 0.5.x, Kotlin Toolchain (Amper) ×4
 ```
 
 ## Context map
@@ -42,6 +44,9 @@ This directory contains shared, vendor-neutral context for coding agents.
 | Mutation testing (PIT), surviving mutants | [`skills/kotlin-mutation-testing/SKILL.md`](skills/kotlin-mutation-testing/SKILL.md) | `kotlin-testing` for the tests it asks for |
 | Choosing which command to run | [`reference/commands.md`](reference/commands.md) | — |
 | Running formatting/static-analysis/tests/coverage/mutation checks | [`skills/gradle-quality-check/SKILL.md`](skills/gradle-quality-check/SKILL.md) | `reference/commands.md` |
+| General Kotlin idioms not covered above (delegation, DSL builders, sequences) | [`reference/coding-conventions.md`](reference/coding-conventions.md) | [`skills/kotlin-patterns/SKILL.md`](skills/kotlin-patterns/SKILL.md) (vendored; the reference wins on conflict) |
+| Migrating `kotlinx.collections.immutable` to 0.5.x | [`skills/kotlin-tooling-immutable-collections-0-5-x-migration/SKILL.md`](skills/kotlin-tooling-immutable-collections-0-5-x-migration/SKILL.md) | `../CLAUDE.md` (versions live in the catalog) |
+| Moving a build from Gradle to the Kotlin Toolchain (Amper) | [`skills/kotlin-tooling-gradle-to-kotlin-toolchain-project/SKILL.md`](skills/kotlin-tooling-gradle-to-kotlin-toolchain-project/SKILL.md) | `kotlin-tooling-gradle-to-kotlin-toolchain-plugin` (one plugin), `kotlin-tooling-kotlin-toolchain`, `kotlin-tooling-kotlin-toolchain-plugin-authoring` |
 | Build, CI, tooling versions, generated README, git hooks | [`../CLAUDE.md`](../CLAUDE.md) | — |
 
 The skills use the portable `SKILL.md` format: front matter with `name`/`description`, then a
@@ -60,12 +65,28 @@ it applies here, since this repo has no Android target, no UI framework, and no 
 source sets). `reference/coding-conventions.md` and `reference/testing.md` are this repository's own
 long-standing conventions, restructured to match that layout.
 
+The **vendored** skills are installed unmodified with the [`skills`](https://github.com/vercel-labs/skills)
+CLI and pinned, with their upstream source and content hash, in
+[`../skills-lock.json`](../skills-lock.json): `kotlin-patterns` from `affaan-m/ecc`, the
+`kotlin-tooling-*` skills from `Kotlin/kotlin-agent-skills`. They are generic, not written for this
+repo: `kotlin-patterns`' Gradle example hardcodes versions and uses Kotest, and its `runCatching`
+example swallows `CancellationException`. Where one disagrees with `reference/` or a repo-authored
+skill, the repo file wins. The `kotlin-tooling-*` skills only apply when their trigger does (the
+Toolchain ones when moving off Gradle); the Android-, KMP- and iOS-only skills from the same source
+are left out on purpose.
+
 ## Maintenance
 
 - Keep [`../AGENTS.md`](../AGENTS.md) short and stable; put detailed or task-specific material here.
 - Adding or renaming a skill: add or update its `../.claude/skills/<name>/SKILL.md` wrapper, and
   keep the wrapper's `description` identical to the canonical one (it is what triggers the skill
   in Claude Code). Add it to the layout and context map above and to `../AGENTS.md`'s task list.
+- Adding a vendored skill with `npx skills add <owner>/<repo>`: review `git status` afterwards. The
+  CLI silently overwrites a repo skill with the same `name` (restore it from git and drop the
+  entry from `skills-lock.json`), and it links `../.claude/skills/<name>` as a symlink, which
+  must become a plain wrapper as above. Don't hand-edit a vendored skill's files: an update
+  replaces them with upstream. Removing one means deleting its directory, its wrapper, and its
+  `skills-lock.json` entry.
 - Keep fast-changing dependency versions in [`../gradle/libs.versions.toml`](../gradle/libs.versions.toml)
   and link to it instead of copying values into agent docs.
 - If `core/src/main/kotlin/dev/shtanko/template/core/` stops being example/placeholder code (see
