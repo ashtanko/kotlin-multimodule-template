@@ -6,7 +6,7 @@ plugins {
     base
     idea
     jacoco
-    id("com.github.nbaztec.coveralls-jacoco") version "1.2.20"
+    alias(libs.plugins.coveralls.jacoco)
     // No version: com.diffplug.spotless is already on the classpath via buildSrc's own
     // dependency on it (needed there to reference SpotlessPlugin below and in the convention
     // plugin), so an `alias(libs.plugins.spotless)` here would conflict on the unversioned copy.
@@ -26,7 +26,7 @@ fun isLinuxOrMacOs(): Boolean {
 }
 
 jacoco {
-    toolVersion = "0.8.15"
+    toolVersion = libs.versions.jacoco.get()
 }
 
 // Module sources and build scripts are formatted per module by the `template.kotlin-library`

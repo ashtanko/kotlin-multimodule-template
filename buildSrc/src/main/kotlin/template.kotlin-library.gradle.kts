@@ -1,4 +1,20 @@
 /*
+ * Copyright 2026 Oleksii Shtanko
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * Convention plugin shared by every pure-Kotlin/JVM subproject (`app`, `core`, ...).
  *
  * Bundles the Kotlin/JVM toolchain, the static-analysis stack (detekt/diktat/spotless), Jacoco
@@ -6,10 +22,11 @@
  * root `build.gradle.kts`. See CLAUDE.md ("Versions are centralized") for the reasoning behind
  * keeping tool versions in `gradle/libs.versions.toml` rather than here.
  */
+
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
 
@@ -23,6 +40,9 @@ plugins {
     id("org.jetbrains.kotlinx.kover")
 }
 
+val libs = the<org.gradle.api.artifacts.VersionCatalogsExtension>().named("libs")
+
+@Suppress("MAGIC_NUMBER")  // the JDK feature-release number, not an arbitrary magic value
 val projectJvmTarget = 17
 
 // Tests run on the toolchain JDK unless `-PtestJdk=<version>` is given. CI's JDK matrix passes it,
@@ -38,7 +58,7 @@ kotlin {
 }
 
 jacoco {
-    toolVersion = "0.8.15"
+    toolVersion = libs.findVersion("jacoco").get().toString()
 }
 
 // No shared `kover { reports { verify { ... } } }` rule here: the >=80% line-coverage bound is
@@ -93,15 +113,21 @@ detekt {
 }
 
 // Feed this module's SARIF into the root `detektReportMerge` (build/reports/detekt/merge.sarif).
-val detektReportMerge = rootProject.tasks.named<ReportMergeTask>("detektReportMerge")
+// Diktat false positive: it reports the <ReportMergeTask> type argument on `named` as redundant
+// given the explicit val type, but dropping it makes Kotlin resolve the non-generic
+// `named(String): TaskProvider<Task>` overload instead, which fails to compile against this type.
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val detektReportMerge: TaskProvider<ReportMergeTask> = rootProject.tasks.named<ReportMergeTask>("detektReportMerge")
 detektReportMerge.configure {
     input.from(tasks.named<Detekt>("detekt").flatMap { it.sarifReportFile })
 }
 
 tasks {
-    // `check` (and so `build`) otherwise runs detekt/spotless but not diktat.
+    // `check` (and so `build`) otherwise runs detekt/spotless but not diktat, and only detekt's
+    // no-type-resolution pass — detektMain/detektTest are the type-resolution-aware twins that
+    // rules like ForbiddenMethodCall require to fire at all (see CLAUDE.md).
     named("check") {
-        dependsOn("diktatCheck")
+        dependsOn("diktatCheck", "detektMain", "detektTest")
     }
 
     withType<Test> {
@@ -157,7 +183,7 @@ tasks {
     withType<Detekt>().configureEach {
         description = "Runs over this module's code base."
         parallel = true
-        jvmTarget = "$projectJvmTarget"
+        jvmTarget = projectJvmTarget.toString()
         setSource(files("src/main/kotlin", "src/test/kotlin"))
         setOf(
             "**/*.kt",
@@ -172,23 +198,23 @@ tasks {
     }
 
     withType<DetektCreateBaselineTask>().configureEach {
-        jvmTarget = "$projectJvmTarget"
+        jvmTarget = projectJvmTarget.toString()
     }
 }
-
-val libs = the<org.gradle.api.artifacts.VersionCatalogsExtension>().named("libs")
 
 dependencies {
     "implementation"(kotlin("stdlib"))
 
-    "testImplementation"(libs.findLibrary("junit-api").get())
-    "testImplementation"(libs.findLibrary("junit-params").get())
-    "testRuntimeOnly"(libs.findLibrary("junit-engine").get())
-    "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
-    "testImplementation"(libs.findLibrary("kotlin-test").get())
-    "testImplementation"(libs.findLibrary("assertj").get())
-    "testImplementation"(libs.findLibrary("mockk").get())
-    "testImplementation"(libs.findLibrary("mockk-bdd").get())
-    "testImplementation"(libs.findLibrary("mockito").get())
-    "testImplementation"(libs.findLibrary("mockito-kotlin").get())
+    val testImplementation = "testImplementation"
+    testImplementation(libs.findLibrary("junit-api").get())
+    testImplementation(libs.findLibrary("junit-params").get())
+    val testRuntimeOnly = "testRuntimeOnly"
+    testRuntimeOnly(libs.findLibrary("junit-engine").get())
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(libs.findLibrary("kotlin-test").get())
+    testImplementation(libs.findLibrary("assertj").get())
+    testImplementation(libs.findLibrary("mockk").get())
+    testImplementation(libs.findLibrary("mockk-bdd").get())
+    testImplementation(libs.findLibrary("mockito").get())
+    testImplementation(libs.findLibrary("mockito-kotlin").get())
 }

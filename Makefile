@@ -1,16 +1,23 @@
 .PHONY: default check lint format spotless detekt diktat test report treport lines md all kover bump-gradle
 
 # Static-analysis tasks. Each fans out to every module (template.kotlin-library convention plugin),
-# with every diktat and detekt rule enabled over main and test sources. --continue reports every
-# failing tool/module in one pass instead of stopping at the first.
-LINT_TASKS := spotlessCheck detekt diktatCheck
+# with every diktat and detekt rule enabled over main and test sources. detektMain/detektTest are
+# detekt's type-resolution-aware twins of the plain `detekt` task — rules like ForbiddenMethodCall
+# only fire under them (see CLAUDE.md), so they're listed explicitly rather than relying on `detekt`
+# alone. --continue reports every failing tool/module in one pass instead of stopping at the first.
+LINT_TASKS := spotlessCheck detekt detektMain detektTest diktatCheck
 
 check:
 	./gradlew spotlessApply $(LINT_TASKS) --continue --profile --daemon
+	./gradlew -p buildSrc spotlessApply check --continue
 
-# Verify-only twin of `check` (no auto-format) — what CI runs.
+# Verify-only twin of `check` (no auto-format) — what CI runs. buildSrc is a separate Gradle
+# build (it defines the convention plugin every module applies, so it can't apply that plugin to
+# itself), hence the second invocation: its own `check` runs detekt/diktatCheck/spotlessCheck
+# against buildSrc's Kotlin source the same way $(LINT_TASKS) does for app/core.
 lint:
 	./gradlew $(LINT_TASKS) --continue
+	./gradlew -p buildSrc check --continue
 
 format:
 	./gradlew spotlessApply
@@ -46,7 +53,7 @@ diktat:
 	./gradlew diktatCheck --continue
 
 detekt:
-	./gradlew detekt --continue
+	./gradlew detekt detektMain detektTest --continue
 
 bump-gradle:
 	chmod +x gradlew && ./gradlew wrapper --gradle-version 9.5
